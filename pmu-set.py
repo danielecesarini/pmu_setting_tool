@@ -11,7 +11,7 @@ num_core = 0
 num_skt = 0
 num_core_skt = 0
 
-num_pmu = 8
+num_pmu = None
 
 ############## MSR REGISTRIES ##############
 
@@ -61,10 +61,15 @@ def check_requirements():
         sys.stderr.write("[WARNING] MSR module is not loaded!\n")
         exit(-2)
 
+def hyperthreading_enabled():
+    fd = open('/proc/cpuinfo')
+    cpuinfo = dict(map(str.strip, line.split(':')) for line in fd if ':' in line)
+    fd.close()
+    return cpuinfo['siblings'] != cpuinfo['cpu cores']
 
 # Default initial configuration
 def init_config():
-    global num_core, num_skt, num_core_skt
+    global num_core, num_skt, num_core_skt, num_pmu
 
     # Read the number of virtual CPUs and sockets
     with open("/proc/cpuinfo", "r") as f:
@@ -76,8 +81,14 @@ def init_config():
                 if (int(skt)+1) > num_skt:
                     num_skt += 1
     num_core_skt = num_core / num_skt
+
+    ht = hyperthreading_enabled()
+    if ht is True:
+        num_pmu = 4
+    else:
+        num_pmu = 8
     
-def read_pmu():
+def read_enable_fixed_pmu():
     table_data = []
 
     labels = ["IA32_PERF_GLOBAL_CTRL"]
@@ -122,7 +133,7 @@ def read_pmu():
     table = AsciiTable(table_data)
     print table.table
 
-
+def read_conf_fixed():
     table_data = []
 
     labels = ["IA32_FIXED_CTR_CTRL"]
@@ -190,7 +201,7 @@ def read_pmu():
     table = AsciiTable(table_data)
     print table.table
 
-
+def read_conf_pmu():
     for c in range(num_core):
         table_data = []
 
@@ -251,7 +262,7 @@ def read_pmu():
         table = AsciiTable(table_data)
         print table.table
 
-
+def read_perf_fixed():
     table_data = []
 
     labels = ["PERF"]
@@ -270,7 +281,7 @@ def read_pmu():
     table = AsciiTable(table_data)
     print table.table
 
-
+def read_perf_pmu():
     table_data = []
 
     labels = ["PERF"]
@@ -342,7 +353,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     if len(sys.argv) == 1:
-        read_pmu()
+        read_enable_fixed_pmu()
+        read_conf_fixed()
+        read_conf_pmu()
+        read_perf_fixed()
+        read_perf_pmu()
         sys.exit(1)
     elif args.reset:
         reset()
