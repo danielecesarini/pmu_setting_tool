@@ -315,7 +315,21 @@ def reset():
         for j in range(num_pmu):
             reg_ia32_perfevtselx = read_msr(IA32_PERFEVTSELX_ADDR[j], c)
             reg_ia32_perfevtselx = reg_ia32_perfevtselx & ~0xFFFFFFFF
-            write_msr(IA32_PERFEVTSELX_ADDR[j], reg_ia32_perfevtselx, c) 
+            write_msr(IA32_PERFEVTSELX_ADDR[j], reg_ia32_perfevtselx, c)
+
+def is_hex(s):
+    try:
+        int(s, 16)
+        return True
+    except ValueError:
+        return False
+
+def is_int(s):
+    try:
+        int(s, 10)
+        return True
+    except ValueError:
+        return False
 
 # Main
 if __name__ == "__main__":
@@ -337,7 +351,7 @@ if __name__ == "__main__":
     parser.add_argument('-df', '--disable-fix', help='Disable fixed counter', required=False, action='store_true')
     parser.add_argument('-ep', '--enable-pmu', help='Enable PMU counter', required=False, action='store_true')
     parser.add_argument('-dp', '--disable-pmu', help='Disable PMU counter', required=False, action='store_true')
-    parser.add_argument('-pmu', '--pmu', help='Select the PMU registry', required=False, type=int, choices=xrange(0, num_pmu-1))
+    parser.add_argument('-pmu', '--pmu', help='Select the PMU registry', required=False, type=int, choices=xrange(0, num_pmu))
     parser.add_argument('-cmask', '--cmask', help='Set the Counter umask', required=False, type=int)
     parser.add_argument('-inv', '--inv', help='Set the Invert counter mask', required=False, type=str, choices=["on", "off"])
     parser.add_argument('-en', '--en', help='Set enable coutner', required=False, type=str, choices=["on", "off"])
@@ -347,8 +361,8 @@ if __name__ == "__main__":
     parser.add_argument('-e', '--e', help='Set edge detect', required=False, type=str, choices=["on", "off"])
     parser.add_argument('-os', '--os', help='Set operating system mode', required=False, type=str, choices=["on", "off"])
     parser.add_argument('-user', '--user', help='Set user mode', required=False, type=str, choices=["on", "off"])
-    parser.add_argument('-umask', '--umask', help='Set the umask', required=False, type=int)
-    parser.add_argument('-event', '--event', help='Set the event', required=False, type=int)
+    parser.add_argument('-umask', '--umask', help='Set the umask', required=False, type=str)
+    parser.add_argument('-event', '--event', help='Set the event', required=False, type=str)
     parser.add_argument('-r', '--reset', help='Reset PMU and fixed counters', required=False, action='store_true')
     args = parser.parse_args()
     
@@ -389,9 +403,21 @@ if __name__ == "__main__":
     if args.pmu is not None:
         pmu = args.pmu
     if args.umask is not None:
-        umask = args.umask
+        if is_hex(args.umask):
+            umask = int(args.umask, 16)
+        elif is_int(args.umask):
+            umask = int(args.umask, 10)
+        else:
+            sys.stderr.write("[WARNING] umask: " + args.umask + " is not a number!\n")
+            exit(-1)
     if args.event is not None:
-        event = args.event
+        if is_hex(args.event):
+            event = int(args.event, 16)
+        elif is_int(args.event):
+            event = int(args.event, 10)
+        else:
+            sys.stderr.write("[WARNING] event: " + args.event + " is not a number!\n")
+            exit(-1)
 
     # Apply configurations
     for c in range(num_core):
