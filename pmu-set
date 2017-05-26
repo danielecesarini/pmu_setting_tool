@@ -357,7 +357,7 @@ if __name__ == "__main__":
     parser.add_argument('-en', '--en', help='Set enable coutner', required=False, type=str, choices=["on", "off"])
     parser.add_argument('-a', '--any', help='Set any thread', required=False, type=str, choices=["on", "off"])
     parser.add_argument('-it', '--int', help='Set APIC interrupt enable', required=False, type=str, choices=["on", "off"])
-    parser.add_argument('-p', '--pc', help='Set pin control', required=False, type=str, choices=["on", "off"])
+    parser.add_argument('-pc', '--pc', help='Set pin control', required=False, type=str, choices=["on", "off"])
     parser.add_argument('-e', '--e', help='Set edge detect', required=False, type=str, choices=["on", "off"])
     parser.add_argument('-o', '--os', help='Set operating system mode', required=False, type=str, choices=["on", "off"])
     parser.add_argument('-us', '--user', help='Set user mode', required=False, type=str, choices=["on", "off"])
