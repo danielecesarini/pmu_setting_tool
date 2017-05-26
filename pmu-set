@@ -346,23 +346,23 @@ if __name__ == "__main__":
 
     # Parse arguments
     parser = argparse.ArgumentParser(description='Tool for PMU setting')
-    parser.add_argument('-c', '--core', help='Set PMU for core $C [Default all]', required=False, type=int, choices=xrange(0, num_core-1))
+    parser.add_argument('-c', '--cpu', help='Set PMU for core $C [Default all]', required=False, type=int, choices=xrange(0, num_core-1))
     parser.add_argument('-ef', '--enable-fix', help='Enable fixed counter', required=False, action='store_true')
     parser.add_argument('-df', '--disable-fix', help='Disable fixed counter', required=False, action='store_true')
     parser.add_argument('-ep', '--enable-pmu', help='Enable PMU counter', required=False, action='store_true')
     parser.add_argument('-dp', '--disable-pmu', help='Disable PMU counter', required=False, action='store_true')
-    parser.add_argument('-pmu', '--pmu', help='Select the PMU registry', required=False, type=int, choices=xrange(0, num_pmu))
-    parser.add_argument('-cmask', '--cmask', help='Set the Counter umask', required=False, type=int)
-    parser.add_argument('-inv', '--inv', help='Set the Invert counter mask', required=False, type=str, choices=["on", "off"])
+    parser.add_argument('-p', '--pmu', help='Select the PMU registry', required=False, type=int, choices=xrange(0, num_pmu))
+    parser.add_argument('-cm', '--cmask', help='Set the Counter umask', required=False, type=int)
+    parser.add_argument('-iv', '--inv', help='Set the Invert counter mask', required=False, type=str, choices=["on", "off"])
     parser.add_argument('-en', '--en', help='Set enable coutner', required=False, type=str, choices=["on", "off"])
-    parser.add_argument('-any', '--any', help='Set any thread', required=False, type=str, choices=["on", "off"])
-    parser.add_argument('-int', '--int', help='Set APIC interrupt enable', required=False, type=str, choices=["on", "off"])
-    parser.add_argument('-pc', '--pc', help='Set pin control', required=False, type=str, choices=["on", "off"])
+    parser.add_argument('-a', '--any', help='Set any thread', required=False, type=str, choices=["on", "off"])
+    parser.add_argument('-it', '--int', help='Set APIC interrupt enable', required=False, type=str, choices=["on", "off"])
+    parser.add_argument('-p', '--pc', help='Set pin control', required=False, type=str, choices=["on", "off"])
     parser.add_argument('-e', '--e', help='Set edge detect', required=False, type=str, choices=["on", "off"])
-    parser.add_argument('-os', '--os', help='Set operating system mode', required=False, type=str, choices=["on", "off"])
-    parser.add_argument('-user', '--user', help='Set user mode', required=False, type=str, choices=["on", "off"])
-    parser.add_argument('-umask', '--umask', help='Set the umask', required=False, type=str)
-    parser.add_argument('-event', '--event', help='Set the event', required=False, type=str)
+    parser.add_argument('-o', '--os', help='Set operating system mode', required=False, type=str, choices=["on", "off"])
+    parser.add_argument('-us', '--user', help='Set user mode', required=False, type=str, choices=["on", "off"])
+    parser.add_argument('-um', '--umask', help='Set the umask', required=False, type=str)
+    parser.add_argument('-ev', '--event', help='Set the event', required=False, type=str)
     parser.add_argument('-r', '--reset', help='Reset PMU and fixed counters', required=False, action='store_true')
     args = parser.parse_args()
     
@@ -385,8 +385,8 @@ if __name__ == "__main__":
             sys.stderr.write("[ERROR] Need to be specify a PMU event and a PMU umask!\n")
             sys.exit(-1)
         
-    if args.core is not None:
-        core[args.core] = True
+    if args.cpu is not None:
+        core[args.cpu] = True
     else:
         core = [True] * num_core
     
