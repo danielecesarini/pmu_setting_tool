@@ -20,7 +20,7 @@ IA32_PERF_GLOBAL_CTRL = 0x38F
 CONF_ENABLE_FIXED = 0x700000000
 CONF_ENABLE_PMU = 0xFF
 
-# FIXED COUNTER configuration (instructions retired, CLK_CURR, CLK_REF)
+# FIXED configuration (instructions retired, CLK_CURR, CLK_REF)
 IA32_FIXED_CTR_CTRL = 0x38D
 CONF_START_FIXED = 0x333
 
@@ -33,6 +33,57 @@ IA32_FIXED_CTRX = [0x309, 0x30a, 0x30b]
 # PMU perf
 IA32_PMCX = [0xC1, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7, 0xC8]
 CONF_EN_OS_USR = 0x430000
+
+############## PMU descriptions ##############
+cmask_desc = "When this field is not zero, a logical processor compares this mask to the events \
+              count of the detected microarchitectural condition during a single cycle. \
+              If the event count is greater than or equal to this mask, the counter is incremented by one. \
+              Otherwise the counter is not incremented."
+
+inv_desc = "When set, inverts the counter-mask (CMASK) comparison, so that both greater \
+             than or equal to and less than comparisons can be made \
+             (off: greater than or equal; on: less than). \
+             Note if counter-mask is programmed to zero, INV flag is ignored."
+
+en_desc = "When set, performance counting is enabled in the corresponding \
+           performance-monitoring counter; when clear, the corresponding counter is disabled."
+
+int_desc = "When set, the logical processor generates an exception \
+            through its local APIC on counter overflow."
+
+pc_desc = "When set, the logical processor toggles the PMi pins and increments the \
+           counter when performance-monitoring events occur; when clear, \
+           the processor toggles the PMi pins when the counter overflows. \
+           The toggling of a pin is defined as assertion of the pin \
+           for a single bus clock followed by deassertion."
+
+edge_desc = "Enables (when set) edge detection of the selected microarchitectural \
+             condition. The logical processor counts the number of deasserted to asserted transitions \
+             for any condition that can be expressed by the other fields. \
+             The mechanism does not permit back-to-back assertions to be distinguished. \
+             This mechanism allows software to measure not only the fraction of time spent in a particular state, \
+             but also the average length of time spent in such a state \
+             (for example, the time spent waiting for an interrupt to be serviced)."
+
+os_desc = "Specifies that the selected microarchitectural condition is counted \
+           when the logical processor is operating at privilege level 0. \
+           This flag can be used with the USR flag."
+
+user_desc = "Specifies that the selected microarchitectural condition is counted when \
+            the logical processor is operating at privilege levels 1, 2 or 3. \
+            This flag can be used with the OS flag."
+
+umask_desc = "These bits qualify the condition that the selected event \
+              logic unit detects. Valid UMASK values for each event logic unit are specific to the unit. \
+              For each architectural performance event, \
+              its corresponding UMASK value defines a specific microarchitectural condition."
+
+event_desc = "Selects the event logic unit used to detect microarchitectural conditions. \
+              The set of values for this field is defined architecturally; \
+              each value corresponds to an event logic unit for use with an architectural performance event. \
+              The number of architectural events is queried using CPUID.0AH:EAX. \
+              A processor may support only a subset of pre-defined values."
+
 
 ##################################################
 
@@ -394,18 +445,18 @@ if __name__ == "__main__":
     parser.add_argument('-df', '--disable-fix', help='Disable fixed counter', required=False, action='store_true')
     parser.add_argument('-ep', '--enable-pmu', help='Enable PMU counter', required=False, action='store_true')
     parser.add_argument('-dp', '--disable-pmu', help='Disable PMU counter', required=False, action='store_true')
-    parser.add_argument('-p', '--pmu', help='Select PMU registry', required=False, type=int, choices=xrange(0, num_pmu))
-    parser.add_argument('-cm', '--cmask', help='Set Counter umask', required=False, type=str)
-    parser.add_argument('-inv', '--inv', help='Set Invert counter mask', required=False, type=str, choices=["on", "off"])
-    parser.add_argument('-en', '--en', help='Set enable coutner', required=False, type=str, choices=["on", "off"])
-    parser.add_argument('-a', '--any', help='Set any thread', required=False, type=str, choices=["on", "off"])
-    parser.add_argument('-int', '--int', help='Set APIC interrupt enable', required=False, type=str, choices=["on", "off"])
-    parser.add_argument('-pc', '--pc', help='Set pin control', required=False, type=str, choices=["on", "off"])
-    parser.add_argument('-ed', '--edge', help='Set edge detect', required=False, type=str, choices=["on", "off"])
-    parser.add_argument('-o', '--os', help='Set operating system mode', required=False, type=str, choices=["on", "off"])
-    parser.add_argument('-us', '--user', help='Set user mode', required=False, type=str, choices=["on", "off"])
-    parser.add_argument('-um', '--umask', help='Set umask', required=False, type=str)
-    parser.add_argument('-ev', '--event', help='Set event', required=False, type=str)
+    parser.add_argument('-a', '--any', help='Set any thread configuration for fixed counters', required=False, type=str, choices=["on", "off"])
+    parser.add_argument('-p', '--pmu', help='Select the PMU registry to configure', required=False, type=int, choices=xrange(0, num_pmu))
+    parser.add_argument('-cm', '--cmask', help='Set Counter umask - ' + cmask_desc, required=False, type=str)
+    parser.add_argument('-inv', '--inv', help='Set Invert counter mask - ' + inv_desc, required=False, type=str, choices=["on", "off"])
+    parser.add_argument('-en', '--en', help='Set enable counter - ' + en_desc, required=False, type=str, choices=["on", "off"])
+    parser.add_argument('-i', '--int', help='Set APIC interrupt enable - ' + int_desc, required=False, type=str, choices=["on", "off"])
+    parser.add_argument('-pc', '--pc', help='Set pin control - ' + pc_desc, required=False, type=str, choices=["on", "off"])
+    parser.add_argument('-e', '--edge', help='Set edge detect - ' + edge_desc, required=False, type=str, choices=["on", "off"])
+    parser.add_argument('-o', '--os', help='Set operating system mode - ' + os_desc, required=False, type=str, choices=["on", "off"])
+    parser.add_argument('-u', '--user', help='Set user mode - ' + user_desc, required=False, type=str, choices=["on", "off"])
+    parser.add_argument('-um', '--umask', help='Set umask - ' + umask_desc, required=False, type=str)
+    parser.add_argument('-ev', '--event', help='Set event - ' + event_desc, required=False, type=str)
     parser.add_argument('-r', '--reset', help='Reset PMU and fixed counters', required=False, action='store_true')
     args = parser.parse_args()
     
@@ -422,7 +473,7 @@ if __name__ == "__main__":
         reset()
         sys.exit(1)
 
-    # Argument: constraint PMU number
+    # Argument: PMU number
     if args.pmu is not None:
         if args.pmu >= num_pmu or args.pmu < 0:
             sys.stderr.write("[ERROR] PMU registries ranged from 1 to " + str(num_pmu) + "!\n")
@@ -431,7 +482,7 @@ if __name__ == "__main__":
             sys.stderr.write("[ERROR] Need to be specify a PMU event and a PMU umask!\n")
             sys.exit(-1)
     
-    # Argument: CPOU number
+    # Argument: CPU number
     if args.cpu is not None:
         core[args.cpu] = True
     else:
